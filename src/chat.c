@@ -185,21 +185,8 @@ static void chat_onKey(ToxWindow *self, Messenger *m, wint_t key)
     getyx(self->window, y, x);
     getmaxyx(self->window, y2, x2);
 
-    /* Add printable chars to buffer and print on input space */
-#if HAVE_WIDECHAR
-    if (iswprint(key)) {
-#else
-    if (isprint(key)) {
-#endif
-        if (ctx->pos != sizeof(ctx->line) - 1) {
-            mvwaddstr(self->window, y, x, wc_to_char(key));
-            ctx->line[ctx->pos++] = key;
-            ctx->line[ctx->pos] = L'\0';
-        }
-    }
-
     /* BACKSPACE key: Remove one character from line */
-    else if (key == 0x107 || key == 0x8 || key == 0x7f) {
+    if (key == 0x107 || key == 0x8 || key == 0x7f) {
         if (ctx->pos > 0) {
             ctx->line[--ctx->pos] = L'\0';
 
@@ -245,6 +232,19 @@ static void chat_onKey(ToxWindow *self, Messenger *m, wint_t key)
         ctx->pos = 0;
         free(line);
     }
+    /* Add printable chars to buffer and print on input space */
+#if HAVE_WIDECHAR
+    else if (iswprint(key)) {
+#else
+    else if (isprint(key)) {
+#endif
+        if (ctx->pos != sizeof(ctx->line) - 1) {
+            mvwaddstr(self->window, y, x, wc_to_char(key));
+            ctx->line[ctx->pos++] = key;
+            ctx->line[ctx->pos] = L'\0';
+        }
+    }
+
 }
 
 void execute(ToxWindow *self, ChatContext *ctx, Messenger *m, char *cmd)
